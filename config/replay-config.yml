@@ -1,0 +1,76 @@
+
+Inputs:
+  - SiemensCPU: siemens.snap7_connect
+    enabled: False
+    host: "<S7 PLC IP>"
+
+  - SiemensServer: siemens.snap7_server
+    enabled: False
+    port: 102
+
+  - Balluff: balluff.balluff_html
+    enabled: False
+
+  - AllenBradleyCPU: rockwell.allen_bradley_connect
+    host: "<AB PLC IP>"
+    enabled: False
+
+  - Replay: replay_influxdb
+    enabled: True
+    url: "http://influxdb-replay:8086"
+    token: "<token>"
+    org: "myorg"
+    bucket: "energy-monitor"
+    start_time: 01.01.2000 01:00:00 +02:00
+
+Middlewares:
+  - PrintStats: debug
+    enabled: True
+  - TimeCorrelation: time_correlation
+    enabled: False
+    enableOutput: False
+    submodules:
+    - PrintStats: debug
+
+Outputs:
+  - CSVStorage: csv_file
+    path: logs
+
+  - InfluxDB: influxdb
+    url: "http://influxdb:8086"
+    token: "<token>"
+    org: "myorg"
+    bucket: "energy-monitor"
+
+Logging:
+  version: 1
+  formatters:
+    standard:
+      format: "%(asctime)s [%(levelname)s]   \t%(name)s: \t%(message)s"
+  handlers:
+    default:
+      level: INFO
+      formatter: standard
+      class: logging.StreamHandler
+      stream: ext://sys.stderr
+  loggers:
+    '':
+      handlers:
+      - default
+      level: DEBUG
+      propagate: false
+    inputs.rockwell.allen_bradley_connect:
+      handlers:
+      - default
+      level: WARNING
+      propagate: false
+    snap7.server:
+      handlers:
+      - default
+      level: WARNING
+      propagate: false
+    __main__:
+      handlers:
+      - default
+      level: DEBUG
+      propagate: false

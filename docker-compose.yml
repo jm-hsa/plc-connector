@@ -1,0 +1,50 @@
+version: "3.7"
+   
+services:
+  plc-connector:
+    container_name: plc-connector
+    build: .
+
+    restart: on-failure
+
+    ports:
+      - 102:102
+
+    volumes:
+      - ./logs:/app/logs/
+      - ./config/config.yml:/app/config.yml
+
+    networks:
+      - influxdb
+  
+  influxdb:
+    container_name: influxdb
+    image: influxdb:latest
+    
+    restart: unless-stopped
+
+    ports:
+      - 8086:8086
+
+    networks:
+      - influxdb
+
+    volumes:
+      - "./conf:/etc/influxdb2"
+      - "./influxdbv2:/var/lib/influxdb2"
+
+  influxdb-replay:
+    container_name: influxdb-replay
+    image: influxdb:latest
+    
+    restart: unless-stopped
+
+    networks:
+      - influxdb
+
+    volumes:
+      - "./influxdbv2-replay:/var/lib/influxdb2"
+
+networks:
+  influxdb:
+    name: influxdb
